@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-50 text-ink font-body antialiased;
+}
+
+h1, h2, h3, .font-display {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.25);
+  color: #0f172a;
+}
+
+*:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
