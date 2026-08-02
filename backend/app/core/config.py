@@ -79,6 +79,13 @@ class Settings(BaseSettings):
     SMS_PROVIDER_API_KEY: str = ""
     PUSH_PROVIDER_API_KEY: str = ""
 
+    # --- IA / Gemini ---
+    GEMINI_API_KEY: str = ""
+    GEMINI_API_URL: str = "https://api.gemini.com"
+    GEMINI_MODEL: str = "gemini-1.5-pro"
+    GEMINI_TIMEOUT_SECONDS: int = 20
+    GEMINI_MAX_OUTPUT_TOKENS: int = 256
+
     # --- Reglas de negocio ---
     DEFAULT_CURRENCY: str = "USD"
     LOW_STOCK_THRESHOLD: int = 5

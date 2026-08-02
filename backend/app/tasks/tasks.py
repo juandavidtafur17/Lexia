@@ -174,6 +174,42 @@ def generate_invoice_pdf(order_id: str) -> None:
         session.close()
 
 
+@celery_app.task(name="app.tasks.tasks.generate_review_sentiment_summary")
+def generate_review_sentiment_summary(review_id: str) -> None:
+    """Genera un resumen de sentimiento profesional para una reseña usando Gemini."""
+    from app.models.engagement import Review
+
+    session: Session = SyncSessionLocal()
+    try:
+        review = session.get(Review, review_id)
+        if not review:
+            logger.warning("Reseña %s no encontrada para resumen de sentimiento", review_id)
+            return
+
+        if not review.comment.strip():
+            review.ai_sentiment_summary = "Sin comentario del cliente."
+            session.add(review)
+            session.commit()
+            return
+
+        try:
+            from app.services.ai.gemini_client import GeminiClient
+
+            client = GeminiClient()
+            metadata = {
+                "product_id": str(review.product_id),
+                "rating": str(review.rating),
+            }
+            summary = client.summarize_review(review.comment, metadata=metadata)
+            review.ai_sentiment_summary = summary
+            session.add(review)
+            session.commit()
+        except Exception as exc:
+            logger.exception("Error al generar resumen de reseña %s: %s", review_id, exc)
+    finally:
+        session.close()
+
+
 @celery_app.task(name="app.tasks.tasks.release_expired_reservations")
 def release_expired_reservations() -> None:
     """

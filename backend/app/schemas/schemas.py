@@ -182,7 +182,8 @@ class InventoryItemOut(BaseModel):
 
 # ---------- Reseñas ----------
 class ReviewCreate(BaseModel):
-    order_item_id: uuid.UUID
+    product_id: uuid.UUID
+    order_item_id: uuid.UUID | None = None
     rating: int = Field(ge=1, le=5)
     title: str | None = None
     comment: str = ""
@@ -195,4 +196,5 @@ class ReviewOut(BaseModel):
     title: str | None
     comment: str
     is_verified_purchase: bool
+    ai_sentiment_summary: str | None = None
     created_at: datetime

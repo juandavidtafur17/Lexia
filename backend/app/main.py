@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import auth, cart, inventory, orders, payments, products, reports, sellers
+from app.api.v1 import auth, cart, inventory, orders, payments, products, reports, reviews, sellers
 from app.core.bootstrap import initialize_database
 from app.core.config import settings
 from app.websocket.manager import inventory_ws_endpoint, notifications_ws_endpoint
@@ -63,6 +63,7 @@ app.include_router(orders.router, prefix=API_PREFIX)
 app.include_router(inventory.router, prefix=API_PREFIX)
 app.include_router(payments.router, prefix=API_PREFIX)
 app.include_router(reports.router, prefix=API_PREFIX)
+app.include_router(reviews.router, prefix=API_PREFIX)
 app.include_router(sellers.router, prefix=API_PREFIX)
 
 
@@ -91,9 +92,16 @@ async def dev_init_db():
 
         raise HTTPException(403, "Not allowed in production")
 
-    # Crear esquema
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Crear esquema: para sqlite usamos el engine síncrono en un thread
+    if settings.DATABASE_URL.startswith("sqlite"):
+        from sqlalchemy import create_engine
+
+        connect_args = {"check_same_thread": False}
+        sync_engine = create_engine(settings.SYNC_DATABASE_URL, connect_args=connect_args)
+        await run_in_threadpool(lambda: Base.metadata.create_all(bind=sync_engine))
+    else:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
     # Insertar datos base mínimos (permissions, tax rules, warehouses)
     async with AsyncSessionLocal() as session:
